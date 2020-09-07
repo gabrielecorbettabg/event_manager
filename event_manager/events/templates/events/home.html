@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>EVENT LIST</h1>
+<div class="row">
+{% if not events %}<h2>No events available</h2>{% endif %}
+{% for e in events %}
+    <div class="col-md-4">
+        <div class="card mb-2">
+            <div class="card-body">
+                <h5 class="card-title">{{ e.name }}</h5>
+                <p class="card-text">{{ e.organizer.name }}</p>
+                <p class="card-text">{{ e.date }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

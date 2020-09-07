@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ event.name }}</h1>
+    <div class="col-md-4">
+        <div class="card mb-2">
+            <div class="card-body">
+                <p class="card-text">Description: {{ event.description }}</p>
+                <p class="card-text">Organizer: {{ event.organizer }}</p>
+                <p class="card-text">When: {{ event.date }}</p>
+                <p class="card-text">Where: {{ event.venue }}</p>
+                <p class="card-text">Max attendance: {{ event.capacity }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
