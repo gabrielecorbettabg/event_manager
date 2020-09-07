@@ -4,11 +4,33 @@
     <div class="col-md-4">
         <div class="card mb-2">
             <div class="card-body">
+                {% if event.is_fully_booked and user.is_authenticated and user not in event.attendees.all %}
+                   <div class="alert alert-danger">Fully booked</div>
+                {% endif %}
+                {% if user.is_authenticated and user in event.attendees.all %}
+                   <div class="alert alert-success">You are attending</div>
+                {% endif %}
                 <p class="card-text">Description: {{ event.description }}</p>
                 <p class="card-text">Organizer: {{ event.organizer }}</p>
                 <p class="card-text">When: {{ event.date }}</p>
                 <p class="card-text">Where: {{ event.venue }}</p>
                 <p class="card-text">Max attendance: {{ event.capacity }}</p>
+                {% if event.organizer == user %}
+                <a href="{% url 'event-update' event.id %}"
+                        class="btn btn-info">
+                      Modify
+                </a>
+                <a href="{% url 'event-delete' event.id %}"
+                        class="btn btn-danger">
+                      Delete
+                </a>
+                {% endif %}
+                {% if user.is_authenticated and user not in event.attendees.all and not event.is_fully_booked %}
+                <a href="{% url 'event-attend' event.id %}"
+                        class="btn btn-primary">
+                      Attend
+                </a>
+                {% endif%}
             </div>
         </div>
     </div>

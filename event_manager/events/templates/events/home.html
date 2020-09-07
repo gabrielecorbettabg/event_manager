@@ -10,10 +10,32 @@
                 <h5 class="card-title">{{ e.name }}</h5>
                 <p class="card-text">{{ e.organizer.name }}</p>
                 <p class="card-text">{{ e.date }}</p>
+                {% if e.is_fully_booked and user.is_authenticated and user not in e.attendees.all %}
+                   <div class="alert alert-danger">Fully booked</div>
+                {% endif %}
+                {% if user.is_authenticated and user in e.attendees.all %}
+                   <div class="alert alert-success">You are attending</div>
+                {% endif %}
                 <a href="{% url 'event-detail' e.id %}"
                         class="btn btn-secondary">
                       Find Out More
                 </a>
+                {% if e.organizer == user %}
+                <a href="{% url 'event-update' e.id %}"
+                        class="btn btn-info">
+                      Modify
+                </a>
+                <a href="{% url 'event-delete' e.id %}"
+                        class="btn btn-danger">
+                      Delete
+                </a>
+                {% endif %}
+                {% if user.is_authenticated and user not in e.attendees.all and not e.is_fully_booked %}
+                <a href="{% url 'event-attend' e.id %}"
+                        class="btn btn-primary">
+                      Attend
+                </a>
+                {% endif%}
             </div>
         </div>
     </div>
