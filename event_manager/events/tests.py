@@ -95,9 +95,20 @@ class TestEventViews(TestCase):
         self.assertEquals(response.status_code, 302)
         self.assertRedirects(response, '/login/?next=/event/create/')
 
+    def test_event_update_view_unauthenticated_redirects_home(self):
+        response = self.client.get(reverse('event-update', args=[1]))
+        self.assertEquals(response.status_code, 302)
+        self.assertRedirects(response, '/login/?next=/event/1/update/')
+
     def test_event_create_view_authenticated(self):
         self.client.force_login(self.organizer)
         response = self.client.get(reverse('event-create'))
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, 'events/event_form.html')
+
+    def test_event_update_view_authenticated(self):
+        self.client.force_login(self.organizer)
+        response = self.client.get(reverse('event-update', args=[1]))
         self.assertEquals(response.status_code, 200)
         self.assertTemplateUsed(response, 'events/event_form.html')
 
@@ -140,3 +151,53 @@ class TestEventViews(TestCase):
         self.assertEquals(msg.message, 'Cannot create events in the past or today!')
         event = Event.objects.filter(name='Past event').exists()
         self.assertFalse(event)
+
+    def test_event_update_valid(self):
+        self.client.force_login(self.organizer)
+        event_data = {
+            'name': 'Updated Test Event',
+            'venue': '199 Power road',
+            'capacity': 22,
+            'date': date.today() + timedelta(days=15),
+        }
+        response = self.client.post(reverse('event-update', args=[self.test_event.id]), event_data)
+        self.assertEqual(response.status_code, 302)
+        event = Event.objects.get(pk=self.test_event.id)
+        self.assertEqual(event.name, event_data['name'])
+        self.assertEqual(event.venue, event_data['venue'])
+        self.assertEqual(event.capacity, event_data['capacity'])
+        self.assertEqual(event.date, event_data['date'])
+
+    def test_event_update_invalid(self):
+        self.client.force_login(self.organizer)
+        event_data = {
+            'venue': '199 Power road',
+            'capacity': 52,
+            'date': date.today() + timedelta(days=25),
+        }
+        response = self.client.post(reverse('event-update', args=[self.test_event.id]), event_data)
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertFalse(form.is_valid())
+        event = Event.objects.get(pk=self.test_event.id)
+        self.assertNotEqual(event.name, event_data['venue'])
+        self.assertNotEqual(event.name, event_data['capacity'])
+        self.assertNotEqual(event.name, event_data['date'])
+
+    def test_invalid_past_event_update(self):
+        self.client.force_login(self.organizer)
+        event_data = {
+            'name': 'Past Test event',
+            'venue': '5 Queen Road',
+            'capacity': 11,
+            'date': date.today() - timedelta(days=4)
+        }
+        response = self.client.post(reverse('event-update', args=[self.test_event.id]), event_data)
+        msg = list(response.context.get('messages'))[0]
+        self.assertEquals(msg.tags, 'error')
+        self.assertEquals(msg.message, 'Cannot schedule events in the past or today!')
+        event = Event.objects.get(pk=self.test_event.id)
+        self.assertNotEqual(event.name, event_data['name'])
+        self.assertNotEqual(event.name, event_data['venue'])
+        self.assertNotEqual(event.name, event_data['capacity'])
+        self.assertNotEqual(event.name, event_data['date'])

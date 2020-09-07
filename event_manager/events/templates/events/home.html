@@ -10,6 +10,10 @@
                 <h5 class="card-title">{{ e.name }}</h5>
                 <p class="card-text">{{ e.organizer.name }}</p>
                 <p class="card-text">{{ e.date }}</p>
+                <a href="{% url 'event-detail' e.id %}"
+                        class="btn btn-secondary">
+                      Find Out More
+                </a>
             </div>
         </div>
     </div>
