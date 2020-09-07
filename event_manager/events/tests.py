@@ -90,7 +90,13 @@ class TestEventViews(TestCase):
         self.assertTemplateUsed(response, 'events/event_detail.html')
         self.assertEqual(response.context['event'].name, 'Test Event')
 
-    def test_event_create_view(self):
+    def test_event_create_view_unauthenticated_redirects_home(self):
+        response = self.client.get(reverse('event-create'))
+        self.assertEquals(response.status_code, 302)
+        self.assertRedirects(response, '/login/?next=/event/create/')
+
+    def test_event_create_view_authenticated(self):
+        self.client.force_login(self.organizer)
         response = self.client.get(reverse('event-create'))
         self.assertEquals(response.status_code, 200)
         self.assertTemplateUsed(response, 'events/event_form.html')

@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
 from .models import Event
@@ -18,7 +19,7 @@ class EventDetailView(DetailView):
     model = Event
 
 
-class EventCreateView(CreateView):
+class EventCreateView(LoginRequiredMixin, CreateView):
     model = Event
     fields = ['name', 'description', 'date', 'venue', 'capacity']
 
