@@ -119,3 +119,18 @@ class TestEventViews(TestCase):
         self.assertFalse(form.is_valid())
         event_created = Event.objects.filter(name='Aperitivo2').exists()
         self.assertFalse(event_created)
+
+    def test_invalid_past_event_create(self):
+        self.client.force_login(self.organizer)
+        event_data = {
+            'name': 'Past event',
+            'venue': '25 Queen Road',
+            'capacity': 2,
+            'date': date.today() - timedelta(days=4)
+        }
+        response = self.client.post(reverse('event-create'), event_data)
+        msg = list(response.context.get('messages'))[0]
+        self.assertEquals(msg.tags, 'error')
+        self.assertEquals(msg.message, 'Cannot create events in the past or today!')
+        event = Event.objects.filter(name='Past event').exists()
+        self.assertFalse(event)
