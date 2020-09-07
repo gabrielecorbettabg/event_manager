@@ -1,12 +1,35 @@
 from datetime import date, timedelta
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.urls import reverse_lazy
+from django.db import connection, IntegrityError
 
 from .models import Event
+
+
+@login_required
+def attend_event(request, pk):
+    event = get_object_or_404(Event, pk=pk)
+    if event.is_fully_booked:
+        messages.error(request, f'Sorry, this event is fully booked')
+        return render(request, 'events/event_attend.html', {'event': event})
+
+    if request.method == 'POST':
+        try:
+            with connection.cursor() as cr:
+                cr.execute("INSERT INTO events_event_attendees (event_id, user_id) VALUES (%s, %s)",
+                           [pk, request.user.id])
+            messages.success(request, f'You have successfully registered to {event.name}!')
+            return redirect('home')
+        # ToDo:Handle other exceptions
+        except IntegrityError:
+            messages.error(request, f'You are already registered to {event.name}!')
+
+    return render(request, 'events/event_attend.html', {'event': event})
 
 
 class EventListView(ListView):
@@ -58,3 +81,5 @@ class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         if self.request.user == self.get_object().organizer:
             return True
         return False
+
+

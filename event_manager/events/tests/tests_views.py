@@ -58,6 +58,11 @@ class TestEventViews(TestCase):
         self.assertEquals(response.status_code, 302)
         self.assertRedirects(response, '/login/?next=/event/1/delete/')
 
+    def test_event_attend_view_unauthenticated_redirects_home(self):
+        response = self.client.get(reverse('event-attend', args=[1]))
+        self.assertEquals(response.status_code, 302)
+        self.assertRedirects(response, '/login/?next=/event/1/attend/')
+
     def test_event_create_view_authenticated(self):
         self.client.force_login(self.organizer)
         response = self.client.get(reverse('event-create'))
@@ -87,6 +92,12 @@ class TestEventViews(TestCase):
         response = self.client.get(reverse('event-delete', args=[1]))
         self.assertEquals(response.status_code, 200)
         self.assertTemplateUsed(response, 'events/event_confirm_delete.html')
+
+    def test_event_attend_view_GET(self):
+        self.client.force_login(self.organizer)
+        response = self.client.get(reverse('event-attend', args=[1]))
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, 'events/event_attend.html')
 
     def test_event_create_valid(self):
         self.client.force_login(self.organizer)
@@ -201,3 +212,14 @@ class TestEventViews(TestCase):
         self.assertEqual(response.status_code, 302)
         event = Event.objects.filter(pk=self.test_event.id).exists()
         self.assertFalse(event)
+
+    def test_event_attend(self):
+        self.client.force_login(self.organizer)
+        self.client.post(reverse('event-attend', args=[self.test_event.id]))
+        event_updated = Event.objects.get(pk=self.test_event.id)
+        self.assertEqual(event_updated.attendees.all().count(), 1)
+
+        self.client.force_login(self.attendee)
+        self.client.post(reverse('event-attend', args=[self.test_event.id]))
+        event_updated = Event.objects.get(pk=self.test_event.id)
+        self.assertEqual(event_updated.attendees.all().count(), 1)
