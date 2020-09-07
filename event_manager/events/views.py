@@ -1,9 +1,10 @@
 from datetime import date, timedelta
 
 from django.shortcuts import render
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
+from django.urls import reverse_lazy
 
 from .models import Event
 
@@ -42,6 +43,16 @@ class EventUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             msg = messages.error(self.request, f'Cannot schedule events in the past or today!')
             return super().form_invalid(form)
         return super().form_valid(form)
+
+    def test_func(self):
+        if self.request.user == self.get_object().organizer:
+            return True
+        return False
+
+
+class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Event
+    success_url = reverse_lazy('home')
 
     def test_func(self):
         if self.request.user == self.get_object().organizer:
