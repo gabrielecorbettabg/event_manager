@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 
 from .models import Event
@@ -32,7 +32,7 @@ class EventCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class EventUpdateView(LoginRequiredMixin, UpdateView):
+class EventUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Event
     fields = ['name', 'description', 'date', 'venue', 'capacity']
 
@@ -42,3 +42,8 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
             msg = messages.error(self.request, f'Cannot schedule events in the past or today!')
             return super().form_invalid(form)
         return super().form_valid(form)
+
+    def test_func(self):
+        if self.request.user == self.get_object().organizer:
+            return True
+        return False

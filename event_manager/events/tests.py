@@ -4,7 +4,7 @@ from django.test import TestCase, SimpleTestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse, resolve
 
-from .views import EventListView, EventDetailView, EventCreateView
+from .views import EventListView, EventDetailView, EventCreateView, EventUpdateView
 from .models import Event
 
 
@@ -52,6 +52,10 @@ class TestEventUrls(SimpleTestCase):
     def test_event_create_url(self):
         url = reverse('event-create')
         self.assertEqual(resolve(url).func.view_class, EventCreateView)
+
+    def test_event_update_url(self):
+        url = reverse('event-update', args=[1])
+        self.assertEqual(resolve(url).func.view_class, EventUpdateView)
 
 
 class TestEventViews(TestCase):
@@ -201,3 +205,15 @@ class TestEventViews(TestCase):
         self.assertNotEqual(event.name, event_data['venue'])
         self.assertNotEqual(event.name, event_data['capacity'])
         self.assertNotEqual(event.name, event_data['date'])
+
+    def test_unauthorized_event_update(self):
+        self.client.force_login(self.attendee)
+        event = Event.objects.get(pk=self.test_event.id)
+        event_data = {
+            'name': 'Should not update',
+            'venue': event.venue,
+            'capacity': event.capacity,
+            'date': event.date
+        }
+        response = self.client.post(reverse('event-update', args=[self.test_event.id]), event_data)
+        self.assertEqual(response.status_code, 403)
