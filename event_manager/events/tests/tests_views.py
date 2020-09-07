@@ -53,6 +53,11 @@ class TestEventViews(TestCase):
         self.assertEquals(response.status_code, 302)
         self.assertRedirects(response, '/login/?next=/event/1/update/')
 
+    def test_event_delete_view_unauthenticated_redirects_home(self):
+        response = self.client.get(reverse('event-delete', args=[1]))
+        self.assertEquals(response.status_code, 302)
+        self.assertRedirects(response, '/login/?next=/event/1/delete/')
+
     def test_event_create_view_authenticated(self):
         self.client.force_login(self.organizer)
         response = self.client.get(reverse('event-create'))
@@ -64,6 +69,24 @@ class TestEventViews(TestCase):
         response = self.client.get(reverse('event-update', args=[1]))
         self.assertEquals(response.status_code, 200)
         self.assertTemplateUsed(response, 'events/event_form.html')
+
+    def test_event_delete_view_authenticated(self):
+        self.client.force_login(self.organizer)
+        response = self.client.get(reverse('event-delete', args=[1]))
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, 'events/event_confirm_delete.html')
+
+    def test_event_update_view_authenticated(self):
+        self.client.force_login(self.organizer)
+        response = self.client.get(reverse('event-update', args=[1]))
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, 'events/event_form.html')
+
+    def test_event_delete_view_authenticated(self):
+        self.client.force_login(self.organizer)
+        response = self.client.get(reverse('event-delete', args=[1]))
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, 'events/event_confirm_delete.html')
 
     def test_event_create_valid(self):
         self.client.force_login(self.organizer)
@@ -166,3 +189,15 @@ class TestEventViews(TestCase):
         }
         response = self.client.post(reverse('event-update', args=[self.test_event.id]), event_data)
         self.assertEqual(response.status_code, 403)
+
+    def test_unauthorized_event_delete(self):
+        self.client.force_login(self.attendee)
+        response = self.client.post(reverse('event-delete', args=[self.test_event.id]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_success_event_delete(self):
+        self.client.force_login(self.organizer)
+        response = self.client.post(reverse('event-delete', args=[self.test_event.id]))
+        self.assertEqual(response.status_code, 302)
+        event = Event.objects.filter(pk=self.test_event.id).exists()
+        self.assertFalse(event)
