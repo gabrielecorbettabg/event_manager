@@ -1,61 +1,10 @@
 from datetime import date, timedelta
 
-from django.test import TestCase, SimpleTestCase, Client
+from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from django.urls import reverse, resolve
+from django.urls import reverse
 
-from .views import EventListView, EventDetailView, EventCreateView, EventUpdateView
-from .models import Event
-
-
-class TestEvent(TestCase):
-    def setUp(self):
-        self.organizer = User.objects.create(
-            username='organizer',
-            password='supersecure',
-        )
-        self.attendee = User.objects.create(
-            username='attendee',
-            password='verysafe',
-        )
-        self.organizer.is_active = True
-        self.organizer.save()
-        self.attendee.is_active = True
-        self.attendee.save()
-        self.test_event = Event.objects.create(
-            name='Test Event',
-            venue='London',
-            organizer=self.organizer,
-            date=date.today() + timedelta(days=10),
-            capacity=1
-        )
-
-    def test_event_str(self):
-        self.assertEqual(str(self.test_event), 'Test Event')
-
-    def test_is_fully_booked(self):
-        self.assertFalse(self.test_event.is_fully_booked)
-
-        self.test_event.attendees.add(self.attendee)
-        self.assertTrue(self.test_event.is_fully_booked)
-
-
-class TestEventUrls(SimpleTestCase):
-    def test_home_url(self):
-        url = reverse('home')
-        self.assertEqual(resolve(url).func.view_class, EventListView)
-
-    def test_event_detail_url(self):
-        url = reverse('event-detail', args=[1])
-        self.assertEqual(resolve(url).func.view_class, EventDetailView)
-
-    def test_event_create_url(self):
-        url = reverse('event-create')
-        self.assertEqual(resolve(url).func.view_class, EventCreateView)
-
-    def test_event_update_url(self):
-        url = reverse('event-update', args=[1])
-        self.assertEqual(resolve(url).func.view_class, EventUpdateView)
+from ..models import Event
 
 
 class TestEventViews(TestCase):
