@@ -55,7 +55,7 @@ ROOT_URLCONF = 'event_manager.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['event_manager/templates/'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
