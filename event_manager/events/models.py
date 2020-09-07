@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.urls import reverse
 
 
 class Event(models.Model):
@@ -23,3 +24,6 @@ class Event(models.Model):
         if len(self.attendees.all()) < self.capacity:
             return False
         return True
+
+    def get_absolute_url(self):
+        return reverse('event-detail', kwargs={'pk': self.pk})

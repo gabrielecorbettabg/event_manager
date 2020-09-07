@@ -19,6 +19,7 @@
           <li><a class="navbar-brand" href="{% url 'sign-up' %}">Sign Up</a></li>
           <li><a class="navbar-brand" href="{% url 'login' %}">Login</a></li>
           {% else %}
+          <li><a class="navbar-brand" href="{% url 'event-create' %}">Create Event</a></li>
           <li><a class="navbar-brand" href="{% url 'logout' %}">Logout</a></li>
           {% endif %}
         </ul>
