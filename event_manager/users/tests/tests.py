@@ -9,7 +9,7 @@ class TestSignUp(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_sign_up_redirects_home(self):
+    def test_sign_up_redirects_login(self):
         sign_up_data = {
             'username': 'newuser',
             'password1': 'itsasecret',
@@ -17,7 +17,7 @@ class TestSignUp(TestCase):
         }
         res = self.client.post(reverse('sign-up'), sign_up_data)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, reverse('home'))
+        self.assertRedirects(res, reverse('login'))
         user_created = User.objects.filter(username=sign_up_data['username']).exists()
         self.assertTrue(user_created)
 
