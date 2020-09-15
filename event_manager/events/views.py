@@ -6,7 +6,6 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db import connection, IntegrityError
 
 from .models import Event
 
@@ -19,15 +18,9 @@ def attend_event(request, pk):
         return render(request, 'events/event_attend.html', {'event': event})
 
     if request.method == 'POST':
-        try:
-            with connection.cursor() as cr:
-                cr.execute("INSERT INTO events_event_attendees (event_id, user_id) VALUES (%s, %s)",
-                           [pk, request.user.id])
-            messages.success(request, f'You have successfully registered to {event.name}!')
-            return redirect('home')
-        # ToDo:Handle other exceptions
-        except IntegrityError:
-            messages.error(request, f'You are already registered to {event.name}!')
+        event.attendees.add(request.user)
+        messages.success(request, f'You have successfully registered to {event.name}!')
+        return redirect('home')
 
     return render(request, 'events/event_attend.html', {'event': event})
 
@@ -83,3 +76,11 @@ class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return False
 
 
+class OrganizerEventList(LoginRequiredMixin, ListView):
+    model = Event
+    template_name = 'events/event_organizer.html'
+    context_object_name = 'events'
+    ordering = ['date']
+
+    def get_queryset(self):
+        return Event.objects.filter(organizer=self.request.user)

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>EVENT LIST</h1>
+<h1>MY EVENTS</h1>
 <div class="row">
-{% if not events %}<h2>No events available</h2>{% endif %}
+{% if not events %}<h2>You have not organized any event yet.</h2>{% endif %}
 {% for e in events %}
     <div class="col-md-4">
         <div class="card mb-2">
@@ -20,7 +20,6 @@
                         class="btn btn-secondary">
                       Find Out More
                 </a>
-                {% if e.organizer == user %}
                 <a href="{% url 'event-update' e.id %}"
                         class="btn btn-info">
                       Modify
@@ -29,7 +28,6 @@
                         class="btn btn-danger">
                       Delete
                 </a>
-                {% endif %}
                 {% if user.is_authenticated and user not in e.attendees.all and not e.is_fully_booked %}
                 <a href="{% url 'event-attend' e.id %}"
                         class="btn btn-primary">

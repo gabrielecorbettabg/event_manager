@@ -37,6 +37,13 @@ class TestEventViews(TestCase):
         self.assertTemplateUsed(response, 'events/home.html')
         self.assertEqual(len(response.context['events']), 1)
 
+    def test_organizer_view(self):
+        self.client.force_login(self.attendee)
+        response = self.client.get(reverse('my-events'))
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, 'events/event_organizer.html')
+        self.assertEqual(len(response.context['events']), 0)
+
     def test_event_detail_view(self):
         response = self.client.get(reverse('event-detail', args=[1]))
         self.assertEquals(response.status_code, 200)
